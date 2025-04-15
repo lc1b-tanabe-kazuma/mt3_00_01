@@ -77,7 +77,7 @@ Vector3 Nomalize(const Vector3& v) {
 	return result;
 };
 
-//
+// 文字の幅
 static const int kColumnWidth = 60;
 
 // 結果を表示する関数
