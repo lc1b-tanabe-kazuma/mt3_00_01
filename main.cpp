@@ -4,10 +4,16 @@
 #include <math.h>
 #include <assert.h>
 
-const char kWindowTitle[] = "LE2C_18_タナベ_カズマ_MT3_00_02";
+const char kWindowTitle[] = "LE2C_19_タナベ_カズマ_MT3_00_03";
 
 struct Matrix4x4 {
 	float m[4][4];
+};
+
+struct Vector3 {
+	float x;
+	float y;
+	float z;
 };
 
 // 行列の加算
@@ -122,13 +128,45 @@ Matrix4x4 MakeIndetity4x4() {
 	return result;
 };
 
+// 平行移動行列
+Matrix4x4 MakeTransMatrix(const Vector3& v ){
+	Matrix4x4 result = {};
+	result.m[0][0] = 1.0f;
+	result.m[1][1] = 1.0f;
+	result.m[2][2] = 1.0f;
+	result.m[3][3] = 1.0f;
+	result.m[3][0] = v.x;
+	result.m[3][1] = v.y;
+	result.m[3][2] = v.z;
+	return result;
+}
+
+//拡大縮小行列
+Matrix4x4 MakeScaleMatrix(const Vector3& v) {
+	Matrix4x4 result = {};
+	result.m[0][0] = v.x;
+	result.m[1][1] = v.y;
+	result.m[2][2] = v.z;
+	result.m[3][3] = 1.0f;
+	return result;
+}
+
+// 座標変換
+Vector3 Transform(const Matrix4x4& m, const Vector3& v) {
+	Vector3 result = {};
+	result.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
+	result.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
+	result.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
+	return result;
+}
+
 //
 static const int kColumnWidth = 60;
 
 //
 static const int kRowHeight = 20;
 
-// 結果を表示する関数
+// 4x4の結果を表示する関数
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& m, const char* label) {
 
 	Novice::ScreenPrintf(x, y, "%s", label);
@@ -140,6 +178,14 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& m, const char* label) {
 	}
 }
 
+// Vectorの結果を表示する関数
+void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) {
+	Novice::ScreenPrintf(x, y, "%.02f", vector.x);
+	Novice::ScreenPrintf(x + kColumnWidth, y, "%.02f", vector.y);
+	Novice::ScreenPrintf(x + kColumnWidth * 2, y, "%.02f", vector.z);
+	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
+};
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -150,38 +196,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Matrix4x4 m1 = {
-	3.2f,0.7f,9.6f,4.4f,
-	5.5f,1.3f,7.8f,2.1f,
-	6.9f,8.0f,2.6f,1.0f,
-	0.5f,7.2f,5.1f,3.3f
+	Vector3 tranlate = { 4.1f,2.6f,0.8f };
+
+	Vector3 scale = { 1.5f,5.2f,7.3f };
+
+	Matrix4x4 transelatematrix = MakeTransMatrix(tranlate);
+
+	Matrix4x4 scalematrix = MakeScaleMatrix(scale);
+
+	Vector3 point{ 2.3f,3.8f,1.4f };
+
+	Matrix4x4 transforMatrix = {
+		1.0f,2.0f,3.0f,4.0f,
+		3.0f,1.0f,1.0f,2.0f,
+		1.0f,4.0f,2.0f,3.0f,
+		2.0f,2.0f,1.0f,3.0f
 	};
 
-	Matrix4x4 m2 = {
-	4.1f,6.5f,3.3f,2.2f,
-	8.8f,0.6f,9.9f,7.7f,
-	1.1f,5.5f,6.6f,0.0f,
-	3.3f,9.9f,8.8f,2.2f
-	};
-
-	// 加算
-	Matrix4x4 resultAdd = Add(m1, m2);
-
-	// 減算
-	Matrix4x4 resultSubtract = Subtract(m1, m2);
-
-	// 積
-	Matrix4x4 resultMultiply = Multiply(m1, m2);
-
-	// 逆行列
-	Matrix4x4 inverseM1 = Inverse(m1);
-	Matrix4x4 inverseM2 = Inverse(m2);
-
-	// 転置行列
-	Matrix4x4 transeposeM1 = Transepose(m1);
-	Matrix4x4 transeposeM2 = Transepose(m2);
-
-	Matrix4x4 identity = MakeIndetity4x4();
+	Vector3 transformed = Transform(transforMatrix,point);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -204,23 +236,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		// 加算を表示
-		MatrixScreenPrintf(0, 0, resultAdd, "ADD");
+		VectorScreenPrintf(0, 0, transformed, "transformMatrix");
 
-		// 減算を表示
-		MatrixScreenPrintf(0, kRowHeight * 5, resultSubtract, "Subtract");
+		MatrixScreenPrintf(0,kRowHeight*2,transelatematrix,"transelateMatrix");
 
-		// 積を表示
-		MatrixScreenPrintf(0, kRowHeight * 5 * 2, resultMultiply, "Multiply");
-
-		// を表示
-		MatrixScreenPrintf(0, kRowHeight * 5 * 3, inverseM1, "inverseM1");
-		MatrixScreenPrintf(0, kRowHeight * 5 * 4, inverseM2, "inverseM2");
-
-		MatrixScreenPrintf(kColumnWidth * 5, 0, transeposeM1, "transeposeM1");
-		MatrixScreenPrintf(kColumnWidth * 5, kRowHeight * 5, transeposeM2, "transeposeM1");
-
-		MatrixScreenPrintf(kColumnWidth * 5, kRowHeight * 5 * 2, identity, "identity");
+		MatrixScreenPrintf(0, kRowHeight * 5*2, scalematrix, "scaleMatrix");
 
 		///
 		/// ↑描画処理ここまで
