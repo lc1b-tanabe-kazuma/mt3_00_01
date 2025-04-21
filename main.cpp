@@ -1,7 +1,7 @@
 #include <Novice.h>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include <assert.h>
 
 const char kWindowTitle[] = "LE2C_19_タナベ_カズマ_MT3_00_03";
@@ -129,7 +129,7 @@ Matrix4x4 MakeIndetity4x4() {
 };
 
 // 平行移動行列
-Matrix4x4 MakeTransMatrix(const Vector3& v ){
+Matrix4x4 MakeTransMatrix(const Vector3& v) {
 	Matrix4x4 result = {};
 	result.m[0][0] = 1.0f;
 	result.m[1][1] = 1.0f;
@@ -157,6 +157,42 @@ Vector3 Transform(const Matrix4x4& m, const Vector3& v) {
 	result.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
 	result.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
 	result.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
+	return result;
+}
+
+// X軸の回転行列
+Matrix4x4 MakeRotXMatrix(float radian) {
+	Matrix4x4 result = {};
+	result.m[0][0] = 1.0f;
+	result.m[1][1] = std::cosf(radian);
+	result.m[1][2] = -std::sinf(radian);
+	result.m[2][1] = std::sinf(radian);
+	result.m[2][2] = std::cosf(radian);
+	result.m[3][3] = 1.0f;
+	return result;
+}
+
+// Y軸の回転行列
+Matrix4x4 MakeRotYMatrix(float radian) {
+	Matrix4x4 result = {};
+	result.m[0][0] = std::cosf(radian);
+	result.m[0][2] = std::sinf(radian);
+	result.m[1][1] = 1.0f;
+	result.m[2][0] = -std::sinf(radian);
+	result.m[2][2] = std::cosf(radian);
+	result.m[3][3] = 1.0f;
+	return result;
+}
+
+// Z軸の回転行列
+Matrix4x4 MakeRotZMatrix(float radian) {
+	Matrix4x4 result = {};
+	result.m[0][0] = std::cosf(radian);
+	result.m[0][1] = std::sinf(radian);
+	result.m[1][0] = -std::sinf(radian);
+	result.m[1][1] = std::cosf(radian);
+	result.m[2][2] = 1.0f;
+	result.m[3][3] = 1.0f;
 	return result;
 }
 
@@ -196,24 +232,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Vector3 tranlate = { 4.1f,2.6f,0.8f };
+	Vector3 rotate{ 0.4f,1.43f,-0.8f };
 
-	Vector3 scale = { 1.5f,5.2f,7.3f };
-
-	Matrix4x4 transelatematrix = MakeTransMatrix(tranlate);
-
-	Matrix4x4 scalematrix = MakeScaleMatrix(scale);
-
-	Vector3 point{ 2.3f,3.8f,1.4f };
-
-	Matrix4x4 transforMatrix = {
-		1.0f,2.0f,3.0f,4.0f,
-		3.0f,1.0f,1.0f,2.0f,
-		1.0f,4.0f,2.0f,3.0f,
-		2.0f,2.0f,1.0f,3.0f
-	};
-
-	Vector3 transformed = Transform(transforMatrix,point);
+	Matrix4x4 rotateXMatrix = MakeRotXMatrix(rotate.x);
+	Matrix4x4 rotateYMatrix = MakeRotYMatrix(rotate.y);
+	Matrix4x4 rotateZMatrix = MakeRotZMatrix(rotate.z);
+	Matrix4x4 rotateXYZMatrix = Multiply(Multiply(rotateXMatrix, rotateYMatrix), rotateZMatrix);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -236,11 +260,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		VectorScreenPrintf(0, 0, transformed, "transformMatrix");
-
-		MatrixScreenPrintf(0,kRowHeight*2,transelatematrix,"transelateMatrix");
-
-		MatrixScreenPrintf(0, kRowHeight * 5*2, scalematrix, "scaleMatrix");
+		MatrixScreenPrintf(0, 0, rotateXMatrix, "rotateXMatrix");
+		MatrixScreenPrintf(0, kRowHeight * 5, rotateYMatrix, "rotateYMatrix");
+		MatrixScreenPrintf(0, kRowHeight * 10, rotateZMatrix, "rotateZMatrix");
+		MatrixScreenPrintf(0, kRowHeight * 15, rotateXYZMatrix, "rotateXYZMatrix");
 
 		///
 		/// ↑描画処理ここまで
