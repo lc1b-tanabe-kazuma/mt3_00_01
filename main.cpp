@@ -270,10 +270,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		MatrixScreenPrintf(0, 0, rotateXMatrix, "rotateXMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 5, rotateYMatrix, "rotateYMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 10, rotateZMatrix, "rotateZMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 15, rotateXYZMatrix, "rotateXYZMatrix");
+		VectorScreenPrintf(0, 0, transformed, "transformMatrix");
+
+		MatrixScreenPrintf(0, kRowHeight * 2, transelatematrix, "transelateMatrix");
+
+		MatrixScreenPrintf(0, kRowHeight * 5 * 2, scalematrix, "scaleMatrix");
 
 		///
 		/// ↑描画処理ここまで
