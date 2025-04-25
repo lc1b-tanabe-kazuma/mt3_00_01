@@ -206,6 +206,26 @@ Matrix4x4 MakeRotZMatrix(float radian) {
 	return result;
 }
 
+// 3次元アフィン変換行列
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+	// スケーリング行列の作成
+	Matrix4x4 matScale = MakeScaleMatrix(scale);
+
+	Matrix4x4 matRotX = MakeRotXMatrix(rotate.x);
+	Matrix4x4 matRotY = MakeRotYMatrix(rotate.y);
+	Matrix4x4 matRotZ = MakeRotZMatrix(rotate.z);
+	// 回転行列の合成
+	Matrix4x4 matRot = Multiply(matRotZ, Multiply(matRotX, matRotY));
+
+	// 平行移動行列の作成
+	Matrix4x4 matTrans = MakeTransMatrix(translate);
+
+	// スケーリング、回転、平行移動の合成
+	Matrix4x4 matTransform = Multiply(Multiply(matScale, matRot), matTrans);
+
+	return matTransform;
+}
+
 //
 static const int kColumnWidth = 60;
 
@@ -242,12 +262,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
+	// 変数の初期化
+	Vector3 scale{ 1.2f,0.79f,-2.1f };
 	Vector3 rotate{ 0.4f,1.43f,-0.8f };
+	Vector3 translate{ 2.7f,-4.15f,1.57f };
 
-	Matrix4x4 rotateXMatrix = MakeRotXMatrix(rotate.x);
-	Matrix4x4 rotateYMatrix = MakeRotYMatrix(rotate.y);
-	Matrix4x4 rotateZMatrix = MakeRotZMatrix(rotate.z);
-	Matrix4x4 rotateXYZMatrix = Multiply(Multiply(rotateXMatrix, rotateYMatrix), rotateZMatrix);
+	Matrix4x4 worldMatrix = MakeAffineMatrix(scale, rotate, translate);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -270,10 +290,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		MatrixScreenPrintf(0, 0, rotateXMatrix, "rotateXMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 5, rotateYMatrix, "rotateYMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 10, rotateZMatrix, "rotateZMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 15, rotateXYZMatrix, "rotateXYZMatrix");
+		Matrix4x4 rotX = MakeRotXMatrix(rotate.x);
+		MatrixScreenPrintf(0, 0, rotX, "rotX");
+
+		Matrix4x4 rotY = MakeRotYMatrix(rotate.y);
+		MatrixScreenPrintf(0, 100, rotY, "rotY");
+
+		Matrix4x4 rotZ = MakeRotZMatrix(rotate.z);
+		MatrixScreenPrintf(0, 200, rotZ, "rotZ");
+
+		Matrix4x4 scaleMatrix = MakeScaleMatrix(scale);
+		MatrixScreenPrintf(0, 300, scaleMatrix, "scaleMatrix");
+
+		Matrix4x4 transMatrix = MakeTransMatrix(translate);
+		MatrixScreenPrintf(0, 400, transMatrix, "transMatrix");
+
+		worldMatrix = MakeAffineMatrix(translate, scale, rotate);
+		MatrixScreenPrintf(0, 500, worldMatrix, "worldMatrix");
 
 		///
 		/// ↑描画処理ここまで
