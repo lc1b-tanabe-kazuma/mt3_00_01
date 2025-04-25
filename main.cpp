@@ -4,7 +4,7 @@
 #include <cmath>
 #include <assert.h>
 
-const char kWindowTitle[] = "LE2C_19_タナベ_カズマ_MT3_00_03";
+const char kWindowTitle[] = "LE2C_19_タナベ_カズマ_MT3_01_01";
 
 struct Matrix4x4 {
 	float m[4][4];
@@ -265,6 +265,15 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 	return result;
 }
 
+// クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result = {};
+	result.x = v1.y * v2.z - v1.z * v2.y;
+	result.y = v1.z * v2.x - v1.x * v2.z;
+	result.z = v1.x * v2.y - v1.y * v2.x;
+	return result;
+}
+
 //
 static const int kColumnWidth = 60;
 
@@ -301,9 +310,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Matrix4x4 orthographicMatrix = MakeOrthographicMatrix(-160.0f, 160.0f, 200.0f, 300.0f, 0.0f, 1000.0f);
-	Matrix4x4 prespectiveFovmatrix = MakePerspectiveFovMatrix(0.63f, 1.33f, 0.1f, 1000.0f);
-	Matrix4x4 viewportMatrix = MakeViewportMatrix(100.0f, 200.0f, 600.0f, 300.0f, 0.0f, 1.0f);
+	Vector3 v1 = { 1.2f, -3.9f, 2.5f };
+	Vector3 v2 = { 2.8f, 0.4f, -1.3f };
+	Vector3 cross = Cross(v1, v2);
+
+	Vector3 rotate = {};
+	Vector3 transelate = {};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -318,6 +330,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f,1.0f,1.0f},rotate,transelate);
+		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f },{0.0f,0.0f,0.0f}, comeraPostion);
+		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.5f, 1280.0f / 720.0f, 0.1f, 100.0f);
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -326,9 +343,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		MatrixScreenPrintf(0, 0, orthographicMatrix, "orthographicMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 5, prespectiveFovmatrix, "prespectiveFovmatrix");
-		MatrixScreenPrintf(0, kRowHeight * 10, viewportMatrix, "viewportMatrix");
+
 
 		///
 		/// ↑描画処理ここまで
