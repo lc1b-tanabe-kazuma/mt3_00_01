@@ -300,6 +300,12 @@ void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) 
 	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
 };
 
+//ウィンドウの幅
+int kWindowWidth = 1280;
+
+//ウィンドウの高さ
+int kWindowHeight = 720;
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -315,7 +321,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cross = Cross(v1, v2);
 
 	Vector3 rotate = {};
-	Vector3 transelate = {};
+	Vector3 transelate = { 0.0f,0.0f,1.0f };
+
+	Vector3 comeraPostion = { 0.0f, 0.0f, -5.0f };
+	Vector3 kLocalvertices[3] = {
+		{ -0.1f, -0.1f, 0.0f },
+		{ 0.1f, -0.1f, 0.0f },
+		{ 0.0f, 0.1f, 0.0f }
+	};
+
+	Vector3 screenvertices[3];
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -330,10 +345,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f,1.0f,1.0f},rotate,transelate);
-		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f },{0.0f,0.0f,0.0f}, comeraPostion);
+		// 右に移動
+		if (keys[DIK_A]) {
+			transelate.x -= 0.01f;
+		}
+
+		// 左に移動
+		if (keys[DIK_D]) {
+			transelate.x += 0.01f;
+		}
+
+		// 前へ移動
+		if (keys[DIK_W]) {
+			transelate.z += 0.1f;
+		}
+
+		// 後ろへ移動
+		if (keys[DIK_S]) {
+			transelate.z -= 0.1f;
+		}
+
+		// 三角形を回転させる
+		rotate.y += 0.1f;
+		if (rotate.y > 360.0f) {
+			rotate.y = 0.0f;
+		}
+
+		// 各行列を計算
+		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, transelate);
+		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, comeraPostion);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.5f, 1280.0f / 720.0f, 0.1f, 100.0f);
+		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
+		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(projectionMatrix, viewMatrix));
+		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
+		for (uint32_t i = 0; i < 3; ++i) {
+			Vector3 ndcvertex = Transform(worldViewProjectionMatrix, kLocalvertices[i]);
+			screenvertices[i] = Transform(viewportMatrix, ndcvertex);
+		}
 
 		///
 		/// ↑更新処理ここまで
@@ -343,7 +391,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
+		// 値の確認
+		VectorScreenPrintf(0, 0, cross, "Cross");
 
+		// 三角形の描画
+		Novice::DrawTriangle(
+			int(screenvertices[0].x), int(screenvertices[0].y),
+			int(screenvertices[1].x), int(screenvertices[1].y),
+			int(screenvertices[2].x), int(screenvertices[2].y),
+			RED, kFillModeSolid);
 
 		///
 		/// ↑描画処理ここまで
