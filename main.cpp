@@ -157,6 +157,16 @@ Vector3 Transform(const Matrix4x4& m, const Vector3& v) {
 	result.x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
 	result.y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
 	result.z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
+
+	// w成分
+	float w = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + m.m[3][3];
+
+	// wが0でない場合、結果をwで割る
+	if (w != 0.0f) {
+		result.x /= w;
+		result.y /= w;
+		result.z /= w;
+	}
 	return result;
 }
 
@@ -165,8 +175,8 @@ Matrix4x4 MakeRotXMatrix(float radian) {
 	Matrix4x4 result = {};
 	result.m[0][0] = 1.0f;
 	result.m[1][1] = std::cosf(radian);
-	result.m[1][2] = -std::sinf(radian);
-	result.m[2][1] = std::sinf(radian);
+	result.m[1][2] = std::sinf(radian);
+	result.m[2][1] = -std::sinf(radian);
 	result.m[2][2] = std::cosf(radian);
 	result.m[3][3] = 1.0f;
 	return result;
@@ -176,9 +186,9 @@ Matrix4x4 MakeRotXMatrix(float radian) {
 Matrix4x4 MakeRotYMatrix(float radian) {
 	Matrix4x4 result = {};
 	result.m[0][0] = std::cosf(radian);
-	result.m[0][2] = std::sinf(radian);
+	result.m[0][2] = -std::sinf(radian);
 	result.m[1][1] = 1.0f;
-	result.m[2][0] = -std::sinf(radian);
+	result.m[2][0] = std::sinf(radian);
 	result.m[2][2] = std::cosf(radian);
 	result.m[3][3] = 1.0f;
 	return result;
