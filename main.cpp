@@ -214,8 +214,9 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	Matrix4x4 matRotX = MakeRotXMatrix(rotate.x);
 	Matrix4x4 matRotY = MakeRotYMatrix(rotate.y);
 	Matrix4x4 matRotZ = MakeRotZMatrix(rotate.z);
+
 	// 回転行列の合成
-	Matrix4x4 matRot = Multiply(matRotZ, Multiply(matRotX, matRotY));
+	Matrix4x4 matRot = Multiply(Multiply(matRotX, matRotY), matRotZ);
 
 	// 平行移動行列の作成
 	Matrix4x4 matTrans = MakeTransMatrix(translate);
@@ -290,23 +291,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Matrix4x4 rotX = MakeRotXMatrix(rotate.x);
-		MatrixScreenPrintf(0, 0, rotX, "rotX");
-
-		Matrix4x4 rotY = MakeRotYMatrix(rotate.y);
-		MatrixScreenPrintf(0, 100, rotY, "rotY");
-
-		Matrix4x4 rotZ = MakeRotZMatrix(rotate.z);
-		MatrixScreenPrintf(0, 200, rotZ, "rotZ");
-
-		Matrix4x4 scaleMatrix = MakeScaleMatrix(scale);
-		MatrixScreenPrintf(0, 300, scaleMatrix, "scaleMatrix");
-
-		Matrix4x4 transMatrix = MakeTransMatrix(translate);
-		MatrixScreenPrintf(0, 400, transMatrix, "transMatrix");
-
-		worldMatrix = MakeAffineMatrix(translate, scale, rotate);
-		MatrixScreenPrintf(0, 500, worldMatrix, "worldMatrix");
+		worldMatrix = MakeAffineMatrix(scale, rotate, translate);
+		MatrixScreenPrintf(0, 0, worldMatrix, "worldMatrix");
 
 		///
 		/// ↑描画処理ここまで
